@@ -1,21 +1,33 @@
 /* eslint-disable react/prop-types */
-import React, { useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import { StyleSheet, View, FlatList, ImageBackground, Image } from 'react-native'
 import { getDetail } from '../../api/RestaurantEndpoints'
 import ImageCard from '../../components/ImageCard'
 import TextRegular from '../../components/TextRegular'
 import TextSemiBold from '../../components/TextSemibold'
 import * as GlobalStyles from '../../styles/GlobalStyles'
+import { AuthorizationContext } from '../../context/AuthorizationContext'
+import { showMessage } from 'react-native-flash-message'
+
 
 export default function RestaurantDetailScreen ({ route }) {
   const [restaurant, setRestaurant] = useState({})
-
+  
   useEffect(() => {
-    console.log('Loading restaurant details, please wait 1 second')
-    setTimeout(() => {
-      setRestaurant(getDetail(route.params.id))
-      console.log('Restaurant details loaded')
-    }, 1000)
+    async function fetchRestaurant () { // Addresses problem 1
+      try {
+        const fetchedRestaurant = await getDetail(route.params.id)
+        setRestaurant(fetchedRestaurant)
+      } catch (error) { // Addresses problem 3
+        showMessage({
+          message: `There was an error while retrieving restaurant detail. ${error} `,
+          type: 'error',
+          style: GlobalStyles.flashStyle,
+          titleStyle: GlobalStyles.flashTextStyle
+        })
+      }
+    }
+    fetchRestaurant()
   }, [])
 
   const renderHeader = () => {
